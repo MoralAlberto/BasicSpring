@@ -11,9 +11,16 @@ import org.springframework.context.annotation.Profile
 import org.springframework.context.support.beans
 import org.springframework.jdbc.core.JdbcOperations
 import org.springframework.jdbc.core.queryForObject
+import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.ModelAndView
+import org.springframework.web.servlet.view.script.ScriptTemplateConfig
+import org.springframework.web.servlet.view.script.ScriptTemplateConfigurer
+import org.springframework.web.servlet.view.script.ScriptTemplateViewResolver
 
 @SpringBootApplication
 class BasicApplication
@@ -23,6 +30,22 @@ fun main(args: Array<String>) {
     SpringApplicationBuilder()
             .sources(BasicApplication::class.java)
             .initializers(beans {
+
+                bean {
+                    ScriptTemplateViewResolver().apply {
+                        this.setSuffix(".kts")
+                        this.setPrefix("templates/")
+                    }
+                }
+
+                bean {
+                    ScriptTemplateConfigurer().apply {
+                        setScripts("scripts/render.kts")
+                        this.engineName = "kotlin"
+                        this.renderFunction = "render"
+                        this.isSharedEngine = false
+                    }
+                }
 
                 bean {
                     SpringTransactionManager(ref())
@@ -39,6 +62,18 @@ fun main(args: Array<String>) {
                 }
             })
             .run(*args)
+}
+
+@RestController
+class CustomerRestController(private val customerService: CustomerService) {
+    @GetMapping("customers")
+    fun customers() = customerService.all()
+}
+
+@Controller
+class CustomerController(private val customerService: CustomerService) {
+    @GetMapping("customers.php")
+    fun customers() = ModelAndView("customers", mapOf("customers" to customerService.all()))
 }
 
 object Customers: Table() {

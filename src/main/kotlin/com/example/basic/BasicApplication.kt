@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.annotation.Profile
 import org.springframework.context.support.beans
+import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.core.JdbcOperations
 import org.springframework.jdbc.core.queryForObject
 import org.springframework.stereotype.Controller
@@ -49,6 +50,9 @@ fun main(args: Array<String>) {
 
 @RestController
 class CustomerRestController(private val customerService: CustomerService) {
+    @GetMapping("/")
+    fun hello() = customerService.hello()
+
     @GetMapping("customers")
     fun customers() = customerService.all()
 
@@ -56,9 +60,10 @@ class CustomerRestController(private val customerService: CustomerService) {
     fun customers(@PathVariable id: Long) = customerService.byId(id)
 
     @PostMapping("new")
-    fun customers(@RequestBody customer: Customer) {
+    fun customers(@RequestBody(required = true) customer: Customer): ResponseEntity<Customer> {
         val newCustomer = Customer(customer.name)
         customerService.insert(newCustomer)
+        return ResponseEntity.ok(customer)
     }
 }
 
@@ -76,6 +81,8 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
         }
     }
 
+    override fun hello(): String = "hello"
+
     override fun all(): Collection<Customer> =
             Customers.selectAll().map { Customer(it[Customers.name], it[Customers.id]) }
 
@@ -91,9 +98,11 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
 }
 
 interface CustomerService {
+    fun hello(): String
     fun all(): Collection<Customer>
     fun byId(id: Long): Customer?
     fun insert(c: Customer)
 }
 
 data class Customer (var name: String, var id: Long? = null)
+data class CustomerResponse (var name: String, var id: Long)

@@ -7,20 +7,12 @@ import org.springframework.beans.factory.InitializingBean
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.context.annotation.Profile
 import org.springframework.context.support.beans
 import org.springframework.http.ResponseEntity
-import org.springframework.jdbc.core.JdbcOperations
-import org.springframework.jdbc.core.queryForObject
-import org.springframework.stereotype.Controller
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.ModelAndView
-import org.springframework.web.servlet.view.script.ScriptTemplateConfig
-import org.springframework.web.servlet.view.script.ScriptTemplateConfigurer
-import org.springframework.web.servlet.view.script.ScriptTemplateViewResolver
 
 @SpringBootApplication
 class BasicApplication
@@ -50,6 +42,7 @@ fun main(args: Array<String>) {
 
 @RestController
 class CustomerRestController(private val customerService: CustomerService) {
+
     @GetMapping("/")
     fun hello() = customerService.hello()
 
@@ -111,4 +104,3 @@ interface CustomerService {
 }
 
 data class Customer (var name: String, var id: Long? = null)
-data class CustomerResponse (var name: String, var id: Long)

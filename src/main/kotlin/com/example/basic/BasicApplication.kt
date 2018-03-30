@@ -62,8 +62,13 @@ class CustomerRestController(private val customerService: CustomerService) {
     @PostMapping("new")
     fun customers(@RequestBody(required = true) customer: Customer): ResponseEntity<Customer> {
         val newCustomer = Customer(customer.name)
-        customerService.insert(newCustomer)
-        return ResponseEntity.ok(customer)
+        val id =customerService.insert(newCustomer)
+        val findCustomer = customerService.byId(id)
+        if (findCustomer == null) {
+            return ResponseEntity.notFound().build<Customer>()
+        } else {
+            return ResponseEntity.ok(findCustomer)
+        }
     }
 }
 
@@ -92,8 +97,9 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
                     .map { Customer(it[Customers.name], it[Customers.id]) }
                     .firstOrNull()
 
-    override fun insert(c: Customer) {
-            Customers.insert { it[Customers.name] = c.name }
+    override fun insert(c: Customer): Long {
+            val value = Customers.insert { it[Customers.name] = c.name }
+            return value.generatedKey!!.toLong()
     }
 }
 
@@ -101,7 +107,7 @@ interface CustomerService {
     fun hello(): String
     fun all(): Collection<Customer>
     fun byId(id: Long): Customer?
-    fun insert(c: Customer)
+    fun insert(c: Customer): Long
 }
 
 data class Customer (var name: String, var id: Long? = null)

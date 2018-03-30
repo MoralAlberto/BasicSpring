@@ -1,15 +1,19 @@
 package com.example.basic
 
-import org.springframework.boot.ApplicationArguments
+
+import org.jetbrains.exposed.spring.SpringTransactionManager
+import org.jetbrains.exposed.sql.*
+import org.springframework.beans.factory.InitializingBean
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Profile
 import org.springframework.context.support.beans
 import org.springframework.jdbc.core.JdbcOperations
 import org.springframework.jdbc.core.queryForObject
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 
 @SpringBootApplication
 class BasicApplication
@@ -19,6 +23,11 @@ fun main(args: Array<String>) {
     SpringApplicationBuilder()
             .sources(BasicApplication::class.java)
             .initializers(beans {
+
+                bean {
+                    SpringTransactionManager(ref())
+                }
+
                 bean {
                     ApplicationRunner {
                         val customerService = ref<CustomerService>()
@@ -32,6 +41,34 @@ fun main(args: Array<String>) {
             .run(*args)
 }
 
+object Customers: Table() {
+    val id = long("id").autoIncrement().primaryKey()
+    val name = varchar("name", 255)
+}
+
+@Service
+@Transactional
+class ExposedCustomerService(private val transactionTemplate: TransactionTemplate): CustomerService, InitializingBean {
+    override fun afterPropertiesSet() {
+        transactionTemplate.execute {
+            SchemaUtils.create(Customers)
+        }
+    }
+
+    override fun all(): Collection<Customer> = Customers.selectAll().map { Customer(it[Customers.name], it[Customers.id]) }
+
+    override fun byId(id: Long): Customer? =
+            Customers
+                    .select { Customers.id.eq(id) }
+                    .map { Customer(it[Customers.name], it[Customers.id]) }
+                    .firstOrNull()
+
+    override fun insert(c: Customer) {
+        Customers.insert { it[Customers.name] = c.name }
+    }
+}
+
+@Profile("jdbc")
 @Service
 @Transactional
 class JdbcCustomerService(private val jdbcOperations: JdbcOperations): CustomerService {

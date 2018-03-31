@@ -2,6 +2,7 @@ package com.example.basic.Service
 
 import com.example.basic.Customer
 import com.example.basic.Service.Customers.id
+import com.sun.org.apache.xpath.internal.operations.Bool
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.springframework.beans.factory.InitializingBean
@@ -44,6 +45,12 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
             it[Customers.name] = name
         }
     }
+
+    override fun deleteById(id: Long): Boolean {
+        val value = Customers.deleteWhere { Customers.id.eq(id) }
+        val success = if (value == 1) true else false
+        return success
+    }
 }
 
 interface CustomerService {
@@ -52,4 +59,5 @@ interface CustomerService {
     fun byId(id: Long): Customer?
     fun insert(c: Customer): Long
     fun updateById(id: Long, name: String)
+    fun deleteById(id: Long): Boolean
 }

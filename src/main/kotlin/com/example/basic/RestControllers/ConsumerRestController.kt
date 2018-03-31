@@ -44,4 +44,13 @@ class CustomerRestController(private val customerService: CustomerService) {
                 .created(URI.create("newCustomer"))
                 .body(findCustomer!!)
     }
+
+    @DeleteMapping("customer/{id}")
+    fun deleteCustomers(@PathVariable id: Long): ResponseEntity<Unit> {
+        val success = customerService.deleteById(id)
+        if (success.not()) {
+            throw CustomerNotFoundException(id.toString())
+        }
+        return ResponseEntity.ok().build()
+    }
 }

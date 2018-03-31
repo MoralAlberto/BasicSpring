@@ -18,13 +18,13 @@ class BasicApplicationTests {
     @Test
     fun contextLoads() {
     }
-
-    @Test
-    fun whenCalled_shouldReturnHello() {
-        val result = testRestTemplate
-                .getForEntity("/", String::class.java)
-
-        assertNotNull(result)
-    }
+//
+//    @Test
+//    fun whenCalled_shouldReturnHello() {
+//        val result = testRestTemplate
+//                .getForEntity("/", String::class.java)
+//
+//        assertNotNull(result)
+//    }
 
 }

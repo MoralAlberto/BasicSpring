@@ -1,7 +1,9 @@
 package com.example.basic.Service
 
 import com.example.basic.Customer
+import com.example.basic.Service.Customers.id
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,6 +38,12 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
         val value = Customers.insert { it[Customers.name] = c.name }
         return value.generatedKey!!.toLong()
     }
+
+    override fun updateById(id: Long, name: String) {
+        Customers.update({ Customers.id.eq(id) }) {
+            it[Customers.name] = name
+        }
+    }
 }
 
 interface CustomerService {
@@ -43,4 +51,5 @@ interface CustomerService {
     fun all(): Collection<Customer>
     fun byId(id: Long): Customer?
     fun insert(c: Customer): Long
+    fun updateById(id: Long, name: String)
 }

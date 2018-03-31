@@ -20,8 +20,17 @@ class CustomerRestController(private val customerService: CustomerService) {
     @GetMapping("customer/{id}")
     fun customers(@PathVariable id: Long): Customer? {
         return customerService.byId(id).guard {
-            throw CustomerNotFoundException()
+            throw CustomerNotFoundException(id.toString())
         }
+    }
+
+    @PutMapping("customer/{id}/{name}")
+    fun customers(@PathVariable id: Long, @PathVariable name: String): ResponseEntity<Customer> {
+        customerService.updateById(id, name)
+        val updatedCustomer = customerService.byId(id).guard {
+            throw CustomerNotFoundException(id.toString())
+        }
+        return ResponseEntity.ok(updatedCustomer!!)
     }
 
     @PostMapping("newCustomer")
@@ -29,7 +38,7 @@ class CustomerRestController(private val customerService: CustomerService) {
         val newCustomer = Customer(customer.name)
         val id = customerService.insert(newCustomer)
         val findCustomer = customerService.byId(id).guard {
-            throw CustomerNotFoundException()
+            throw CustomerNotFoundException(id.toString())
         }
         return ResponseEntity
                 .created(URI.create("newCustomer"))

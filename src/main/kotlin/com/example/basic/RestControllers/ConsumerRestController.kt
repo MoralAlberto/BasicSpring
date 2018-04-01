@@ -24,6 +24,9 @@ class CustomerRestController(private val customerService: CustomerService) {
         }
     }
 
+    @GetMapping("searchByName/{value}")
+    fun customers(@PathVariable value: String) = customerService.searchByName(value)
+
     @PutMapping("customer/{id}/{name}")
     fun customers(@PathVariable id: Long, @PathVariable name: String): ResponseEntity<Customer> {
         customerService.updateById(id, name)

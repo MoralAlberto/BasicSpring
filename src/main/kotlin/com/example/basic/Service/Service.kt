@@ -5,6 +5,7 @@ import com.example.basic.Service.Customers.id
 import com.sun.org.apache.xpath.internal.operations.Bool
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.statements.Statement
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -41,7 +42,7 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
     }
 
     override fun updateById(id: Long, name: String) {
-        Customers.update({ Customers.id.eq(id) }) {
+        Customers.update({ Customers.id eq id }) {
             it[Customers.name] = name
         }
     }
@@ -51,6 +52,10 @@ class ExposedCustomerService(private val transactionTemplate: TransactionTemplat
         val success = if (value == 1) true else false
         return success
     }
+
+    override fun searchByName(search: String): Collection<Customer> =
+            Customers.select { Customers.name match "Alberto" }
+                    .map { Customer(it[Customers.name], it[Customers.id]) }
 }
 
 interface CustomerService {
@@ -60,4 +65,5 @@ interface CustomerService {
     fun insert(c: Customer): Long
     fun updateById(id: Long, name: String)
     fun deleteById(id: Long): Boolean
+    fun searchByName(search: String): Collection<Customer>
 }
